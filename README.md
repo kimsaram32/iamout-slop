@@ -4,21 +4,44 @@ This is a slop prototype, built entirely by Claude Code.
 
 ## Setup
 
+**1. Install dependencies**
+
 ```bash
-cp .env.example .env
-# fill in MONGODB_URI, DISCORD_TOKEN, DISCORD_CLIENT_ID
+pnpm install
 ```
 
-Edit `src/seed.js` to define your classrooms, then seed the DB:
+**2. Configure environment**
+
+```bash
+cp .env.example .env
+```
+
+Fill in `.env`:
+
+| Variable | Description |
+|----------|-------------|
+| `MONGODB_URI` | MongoDB connection string |
+| `DISCORD_TOKEN` | Bot token from [Discord Developer Portal](https://discord.com/developers/applications) |
+| `DISCORD_CLIENT_ID` | Application ID from the same portal |
+| `PORT` | HTTP port (default: `3000`) |
+
+**3. Seed the database**
+
+Edit `src/seed.js` to define your classrooms (grade, room, total student count), then run:
 
 ```bash
 pnpm seed
 ```
 
-Start the server and bot:
+**4. Run**
 
 ```bash
+# Local
 pnpm start
+
+# Docker
+docker build -t iamout .
+docker run -d --env-file .env -p 3000:3000 iamout
 ```
 
 ## Slash commands
