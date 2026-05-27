@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>외출 현황 [__GRADE__-__ROOM__]</title>
+  <style>
+    body {
+      font-family: monospace;
+      max-width: 480px;
+      margin: 60px auto;
+      padding: 0 20px;
+      background: #fff;
+      color: #111;
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 4px; }
+    #count { font-size: 1.1rem; margin-bottom: 20px; color: #555; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { padding: 6px 0; border-bottom: 1px solid #eee; }
+    #empty { color: #aaa; }
+  </style>
+</head>
+<body>
+  <h1>[__GRADE__-__ROOM__]</h1>
+  <div id="count">로딩 중...</div>
+  <ul id="list"></ul>
+
+  <script>
+    const GRADE = '__GRADE__';
+    const ROOM = '__ROOM__';
+
+    function render(classroom) {
+      const absent = classroom.absentStudents;
+      const present = classroom.totalStudentsCount - absent.length;
+      document.getElementById('count').textContent =
+        `${present} / ${classroom.totalStudentsCount} 명`;
+
+      const list = document.getElementById('list');
+      if (absent.length === 0) {
+        list.innerHTML = '<li id="empty">외출 중인 학생 없음</li>';
+        return;
+      }
+      list.innerHTML = absent
+        .map(s => `<li>${s.studentNumber} ${s.name}${s.reason ? ': ' + s.reason : ''}</li>`)
+        .join('');
+    }
+
+    // Fetch initial state
+    fetch(`/api/${GRADE}/${ROOM}`)
+      .then(r => r.json())
+      .then(render)
+      .catch(() => {
+        document.getElementById('count').textContent = '교실을 찾을 수 없습니다.';
+      });
+
+    // SSE for live updates
+    const es = new EventSource(`/events/${GRADE}/${ROOM}`);
+    es.onmessage = e => render(JSON.parse(e.data));
+  </script>
+</body>
+</html>
