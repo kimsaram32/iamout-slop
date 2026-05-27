@@ -31,9 +31,10 @@
 
     function render(classroom) {
       const absent = classroom.absentStudents;
-      const present = classroom.totalStudentsCount - absent.length;
-      document.getElementById('count').textContent =
-        `${present} / ${classroom.totalStudentsCount} 명`;
+      document.getElementById('count').textContent = `${absent.length}명 외출`;
+      // const present = classroom.totalStudentsCount - absent.length;
+      // document.getElementById('count').textContent =
+      //  `${present} / ${classroom.totalStudentsCount} 명`;
 
       const list = document.getElementById('list');
       if (absent.length === 0) {
