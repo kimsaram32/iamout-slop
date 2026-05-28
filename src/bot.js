@@ -13,22 +13,55 @@ function parseNickname(nickname) {
   return { studentNumber, name, grade, room };
 }
 
+// Resolves student identity from manual options or nickname fallback.
+// Returns the parsed identity, or replies with an error and returns null.
+async function resolveStudent(interaction, parsedNick) {
+  const manualStudentNumber = interaction.options.getInteger('학번');
+  const manualName = interaction.options.getString('이름');
+
+  if ((manualStudentNumber === null) !== (manualName === null)) {
+    await interaction.reply({ content: '학번과 이름을 함께 입력하거나, 둘 다 생략해야 합니다.', ephemeral: true });
+    return null;
+  }
+
+  if (manualStudentNumber !== null) {
+    const studentNumber = manualStudentNumber;
+    const name = manualName;
+    const grade = Math.floor(studentNumber / 1000);
+    const room = Math.floor((studentNumber % 1000) / 100);
+    return { studentNumber, name, grade, room };
+  }
+
+  if (!parsedNick) {
+    await interaction.reply({ content: '닉네임 형식이 올바르지 않습니다. (예: 2501_김깔깔)', ephemeral: true });
+    return null;
+  }
+
+  return parsedNick;
+}
+
+const studentOptions = builder => builder
+  .addIntegerOption(opt =>
+    opt.setName('학번').setDescription('학번 (이름과 함께 입력)').setRequired(false)
+  )
+  .addStringOption(opt =>
+    opt.setName('이름').setDescription('이름 (학번과 함께 입력)').setRequired(false)
+  );
+
 const commands = [
-  new SlashCommandBuilder()
-    .setName('이동')
-    .setDescription('이동을 등록합니다.')
-    .addStringOption(opt =>
-      opt.setName('사유').setDescription('이동 사유').setRequired(false)
-    )
-    .addIntegerOption(opt =>
-      opt.setName('학번').setDescription('학번 (이름과 함께 입력)').setRequired(false)
-    )
-    .addStringOption(opt =>
-      opt.setName('이름').setDescription('이름 (학번과 함께 입력)').setRequired(false)
-    ),
-  new SlashCommandBuilder()
-    .setName('복귀')
-    .setDescription('복귀를 등록합니다.'),
+  studentOptions(
+    new SlashCommandBuilder()
+      .setName('이동')
+      .setDescription('이동을 등록합니다.')
+      .addStringOption(opt =>
+        opt.setName('사유').setDescription('이동 사유').setRequired(false)
+      )
+  ),
+  studentOptions(
+    new SlashCommandBuilder()
+      .setName('복귀')
+      .setDescription('복귀를 등록합니다.')
+  ),
   new SlashCommandBuilder()
     .setName('초기화')
     .setDescription('반 전체 이동 목록을 초기화합니다.'),
@@ -55,28 +88,10 @@ export function startBot() {
 
     try {
       if (interaction.commandName === '이동') {
-        const manualStudentNumber = interaction.options.getInteger('학번');
-        const manualName = interaction.options.getString('이름');
+        const student = await resolveStudent(interaction, parsedNick);
+        if (!student) return;
 
-        if ((manualStudentNumber === null) !== (manualName === null)) {
-          await interaction.reply({ content: '학번과 이름을 함께 입력하거나, 둘 다 생략해야 합니다.', ephemeral: true });
-          return;
-        }
-
-        let studentNumber, name, grade, room;
-        if (manualStudentNumber !== null) {
-          studentNumber = manualStudentNumber;
-          name = manualName;
-          grade = Math.floor(studentNumber / 1000);
-          room = Math.floor((studentNumber % 1000) / 100);
-        } else {
-          if (!parsedNick) {
-            await interaction.reply({ content: '닉네임 형식이 올바르지 않습니다. (예: 2501_김깔깔)', ephemeral: true });
-            return;
-          }
-          ({ studentNumber, name, grade, room } = parsedNick);
-        }
-
+        const { studentNumber, name, grade, room } = student;
         const reason = interaction.options.getString('사유') || '';
         await fetch(`${BASE_URL}/api/${grade}/${room}/checkout`, {
           method: 'POST',
@@ -86,11 +101,10 @@ export function startBot() {
         await interaction.reply({ content: `${name} 이동이 등록되었습니다.${reason ? ` (${reason})` : ''}`, ephemeral: true });
 
       } else if (interaction.commandName === '복귀') {
-        if (!parsedNick) {
-          await interaction.reply({ content: '닉네임 형식이 올바르지 않습니다. (예: 2501_김깔깔)', ephemeral: true });
-          return;
-        }
-        const { studentNumber, name, grade, room } = parsedNick;
+        const student = await resolveStudent(interaction, parsedNick);
+        if (!student) return;
+
+        const { studentNumber, name, grade, room } = student;
         await fetch(`${BASE_URL}/api/${grade}/${room}/checkin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
