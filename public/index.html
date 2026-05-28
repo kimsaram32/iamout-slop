@@ -41,7 +41,8 @@
         list.innerHTML = '<li id="empty">이동 중인 학생 없음</li>';
         return;
       }
-      list.innerHTML = absent
+      list.innerHTML = [...absent]
+        .sort((a, b) => a.studentNumber - b.studentNumber)
         .map(s => `<li>${s.studentNumber} ${s.name}${s.reason ? ': ' + s.reason : ''}</li>`)
         .join('');
     }
