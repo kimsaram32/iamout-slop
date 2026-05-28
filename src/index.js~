@@ -1,9 +1,0 @@
-import 'dotenv/config';
-import { connectDB } from './db.js';
-import { startServer } from './server.js';
-import { registerCommands, startBot } from './bot.js';
-
-await connectDB();
-startServer();
-await registerCommands();
-startBot();
