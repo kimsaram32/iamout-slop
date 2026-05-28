@@ -19,6 +19,12 @@ const commands = [
     .setDescription('이동을 등록합니다.')
     .addStringOption(opt =>
       opt.setName('사유').setDescription('이동 사유').setRequired(false)
+    )
+    .addIntegerOption(opt =>
+      opt.setName('학번').setDescription('학번 (이름과 함께 입력)').setRequired(false)
+    )
+    .addStringOption(opt =>
+      opt.setName('이름').setDescription('이름 (학번과 함께 입력)').setRequired(false)
     ),
   new SlashCommandBuilder()
     .setName('복귀')
@@ -45,17 +51,32 @@ export function startBot() {
 
     const member = interaction.member;
     const nickname = member.nickname ?? member.nick ?? interaction.user.username;
-    const parsed = parseNickname(nickname);
-
-    if (!parsed) {
-      await interaction.reply({ content: '닉네임 형식이 올바르지 않습니다. (예: 2501_김깔깔)', ephemeral: true });
-      return;
-    }
-
-    const { studentNumber, name, grade, room } = parsed;
+    const parsedNick = parseNickname(nickname);
 
     try {
       if (interaction.commandName === '이동') {
+        const manualStudentNumber = interaction.options.getInteger('학번');
+        const manualName = interaction.options.getString('이름');
+
+        if ((manualStudentNumber === null) !== (manualName === null)) {
+          await interaction.reply({ content: '학번과 이름을 함께 입력하거나, 둘 다 생략해야 합니다.', ephemeral: true });
+          return;
+        }
+
+        let studentNumber, name, grade, room;
+        if (manualStudentNumber !== null) {
+          studentNumber = manualStudentNumber;
+          name = manualName;
+          grade = Math.floor(studentNumber / 1000);
+          room = Math.floor((studentNumber % 1000) / 100);
+        } else {
+          if (!parsedNick) {
+            await interaction.reply({ content: '닉네임 형식이 올바르지 않습니다. (예: 2501_김깔깔)', ephemeral: true });
+            return;
+          }
+          ({ studentNumber, name, grade, room } = parsedNick);
+        }
+
         const reason = interaction.options.getString('사유') || '';
         await fetch(`${BASE_URL}/api/${grade}/${room}/checkout`, {
           method: 'POST',
@@ -65,6 +86,11 @@ export function startBot() {
         await interaction.reply({ content: `${name} 이동이 등록되었습니다.${reason ? ` (${reason})` : ''}`, ephemeral: true });
 
       } else if (interaction.commandName === '복귀') {
+        if (!parsedNick) {
+          await interaction.reply({ content: '닉네임 형식이 올바르지 않습니다. (예: 2501_김깔깔)', ephemeral: true });
+          return;
+        }
+        const { studentNumber, name, grade, room } = parsedNick;
         await fetch(`${BASE_URL}/api/${grade}/${room}/checkin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -73,6 +99,11 @@ export function startBot() {
         await interaction.reply({ content: `${name} 복귀가 등록되었습니다.`, ephemeral: true });
 
       } else if (interaction.commandName === '초기화') {
+        if (!parsedNick) {
+          await interaction.reply({ content: '닉네임 형식이 올바르지 않습니다. (예: 2501_김깔깔)', ephemeral: true });
+          return;
+        }
+        const { grade, room } = parsedNick;
         await fetch(`${BASE_URL}/api/${grade}/${room}/reset`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
