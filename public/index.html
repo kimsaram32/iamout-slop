@@ -16,8 +16,9 @@
     h1 { font-size: 1.4rem; margin-bottom: 4px; }
     #count { font-size: 1.1rem; margin-bottom: 20px; color: #555; }
     ul { list-style: none; padding: 0; margin: 0; }
-    li { padding: 6px 0; border-bottom: 1px solid #eee; }
+    li { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
     #empty { color: #aaa; }
+    button { font-family: monospace; font-size: 0.85rem; padding: 2px 8px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -43,7 +44,7 @@
       }
       list.innerHTML = [...absent]
         .sort((a, b) => a.studentNumber - b.studentNumber)
-        .map(s => `<li>${s.studentNumber} ${s.name}${s.reason ? ': ' + s.reason : ''}</li>`)
+        .map(s => `<li><span>${s.studentNumber} ${s.name}${s.reason ? ': ' + s.reason : ''}</span><button onclick="checkin(${s.studentNumber}, '${s.name}')">복귀</button></li>`)
         .join('');
     }
 
@@ -54,6 +55,15 @@
       .catch(() => {
         document.getElementById('count').textContent = '교실을 찾을 수 없습니다.';
       });
+
+    async function checkin(studentNumber, name) {
+      if (!confirm(`${name} 복귀`)) return;
+      await fetch(`/api/${GRADE}/${ROOM}/checkin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentNumber }),
+      });
+    }
 
     // SSE for live updates
     const es = new EventSource(`/events/${GRADE}/${ROOM}`);
