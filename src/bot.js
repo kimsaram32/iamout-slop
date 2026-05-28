@@ -15,17 +15,17 @@ function parseNickname(nickname) {
 
 const commands = [
   new SlashCommandBuilder()
-    .setName('외출')
-    .setDescription('외출을 등록합니다.')
+    .setName('이동')
+    .setDescription('이동을 등록합니다.')
     .addStringOption(opt =>
-      opt.setName('사유').setDescription('외출 사유').setRequired(false)
+      opt.setName('사유').setDescription('이동 사유').setRequired(false)
     ),
   new SlashCommandBuilder()
     .setName('복귀')
     .setDescription('복귀를 등록합니다.'),
   new SlashCommandBuilder()
     .setName('초기화')
-    .setDescription('반 전체 외출 목록을 초기화합니다.'),
+    .setDescription('반 전체 이동 목록을 초기화합니다.'),
 ].map(c => c.toJSON());
 
 export async function registerCommands() {
@@ -55,14 +55,14 @@ export function startBot() {
     const { studentNumber, name, grade, room } = parsed;
 
     try {
-      if (interaction.commandName === '외출') {
+      if (interaction.commandName === '이동') {
         const reason = interaction.options.getString('사유') || '';
         await fetch(`${BASE_URL}/api/${grade}/${room}/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ studentNumber, name, reason }),
         });
-        await interaction.reply({ content: `${name} 외출이 등록되었습니다.${reason ? ` (${reason})` : ''}`, ephemeral: true });
+        await interaction.reply({ content: `${name} 이동이 등록되었습니다.${reason ? ` (${reason})` : ''}`, ephemeral: true });
 
       } else if (interaction.commandName === '복귀') {
         await fetch(`${BASE_URL}/api/${grade}/${room}/checkin`, {
@@ -77,7 +77,7 @@ export function startBot() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         });
-        await interaction.reply({ content: `${grade}-${room}반 외출 목록이 초기화되었습니다.` });
+        await interaction.reply({ content: `${grade}-${room}반 이동 목록이 초기화되었습니다.` });
       }
     } catch (err) {
       console.error(err);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>외출 현황 [__GRADE__-__ROOM__]</title>
+  <title>이동 현황 [__GRADE__-__ROOM__]</title>
   <style>
     body {
       font-family: monospace;
@@ -31,14 +31,14 @@
 
     function render(classroom) {
       const absent = classroom.absentStudents;
-      document.getElementById('count').textContent = `${absent.length}명 외출`;
+      document.getElementById('count').textContent = `${absent.length}명 이동`;
       // const present = classroom.totalStudentsCount - absent.length;
       // document.getElementById('count').textContent =
       //  `${present} / ${classroom.totalStudentsCount} 명`;
 
       const list = document.getElementById('list');
       if (absent.length === 0) {
-        list.innerHTML = '<li id="empty">외출 중인 학생 없음</li>';
+        list.innerHTML = '<li id="empty">이동 중인 학생 없음</li>';
         return;
       }
       list.innerHTML = absent

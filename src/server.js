@@ -54,7 +54,7 @@ app.get('/api/:grade/:room', async (req, res) => {
   res.json(classroom);
 });
 
-// 외출
+// 이동
 app.post('/api/:grade/:room/checkout', async (req, res) => {
   const { grade, room } = req.params;
   const { studentNumber, name, reason = '' } = req.body;

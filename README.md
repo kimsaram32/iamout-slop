@@ -1,4 +1,4 @@
-# iamout (자습시간 외출/복귀 자동화)
+# iamout (자습시간 이동/복귀 자동화)
 
 This is a slop prototype, built entirely by Claude Code.
 
@@ -48,7 +48,7 @@ docker run -d --env-file .env -p 3000:3000 iamout
 
 | Command | Description |
 |---------|-------------|
-| `/외출 [사유]` | Mark yourself as out (optionally with a reason) |
+| `/이동 [사유]` | Mark yourself as out (optionally with a reason) |
 | `/복귀` | Mark yourself as returned |
 | `/초기화` | Clear all absent students in your classroom |
 
